@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pasarela de Pago — Nodal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F2F1EC;
+    --panel: #FFFFFF;
+    --ink: #14181C;
+    --ink-dim: #565D63;
+    --line: rgba(20,24,28,0.13);
+    --signal: #3454D1;
+    --signal-dim: #E9ECFB;
+    --mint: #2F9E77;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; font-size:16px; line-height:1.55;
+  }
+  h1,h2,h3{font-family:'IBM Plex Sans', sans-serif; font-weight:600; letter-spacing:-0.015em; margin:0;}
+  a{color:inherit; text-decoration:none;}
+  .wrap{max-width:800px; margin:0 auto; padding:0 32px;}
+  .mono{font-family:var(--mono);}
+
+  /* LOGO */
+  .logo{display:flex; align-items:center; gap:10px;}
+  .logo svg{flex-shrink:0;}
+  .logo-word{font-size:19px; font-weight:600; letter-spacing:-0.01em;}
+  .logo-word .dot{color:var(--signal);}
+
+  /* HEADER */
+  header{
+    position:sticky; top:0; z-index:80;
+    background:rgba(242,241,236,0.94); backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  nav.wrap{display:flex; align-items:center; justify-content:space-between; height:76px; max-width:1140px;}
+
+  /* BREADCRUMB / TOP BAR */
+  .breadcrumb-area{padding:28px 0 10px; display: flex; justify-content: space-between; align-items: center;}
+  .breadcrumb{font-size:13.5px; color:var(--ink-dim);}
+  
+  /* MARCO / BOTÓN "VOLVER AL INICIO" */
+  .btn-back-home{
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--panel); border: 1px solid var(--line);
+    padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 500;
+    color: var(--ink); transition: border-color .15s, background .15s;
+    box-shadow: 0 2px 4px rgba(20,24,28,0.02);
+  }
+  .btn-back-home:hover{border-color: var(--signal); color: var(--signal);}
+
+  /* CHECKOUT STYLES */
+  .checkout-container{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:40px; margin:20px 0 80px; box-shadow:0 12px 28px rgba(20,24,28,0.05);
+  }
+  .checkout-title{font-size:26px; margin-bottom:8px;}
+  .checkout-subtitle{color:var(--ink-dim); font-size:14.5px; margin-bottom:32px;}
+
+  .form-group{margin-bottom:24px;}
+  .form-label{display:block; font-size:14px; font-weight:500; margin-bottom:8px;}
+  .form-input, .form-select{
+    width:100%; padding:12px 14px; font-family:inherit; font-size:15px;
+    background:var(--paper); border:1px solid var(--line); border-radius:6px; color:var(--ink);
+    outline:none; transition:border-color .15s;
+  }
+  .form-input:focus, .form-select:focus{border-color:var(--signal);}
+
+  /* PESTAÑAS DESPLEGABLES (ACORDEONES) */
+  .accordion-section{
+    border: 1px solid var(--line); border-radius: 8px; background: var(--paper);
+    margin-bottom: 16px; overflow: hidden;
+  }
+  .accordion-header{
+    width: 100%; background: none; border: none; padding: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: inherit; font-size: 15px; font-weight: 600; color: var(--ink);
+    cursor: pointer; text-align: left;
+  }
+  .accordion-header:hover{background: rgba(0,0,0,0.02);}
+  .accordion-icon{font-size: 14px; transition: transform .2s;}
+  .accordion-section.open .accordion-icon{transform: rotate(180deg);}
+  .accordion-content{
+    max-height: 0; overflow: hidden; transition: max-height .25s ease-out;
+    padding: 0 16px; background: var(--panel); border-top: 1px solid transparent;
+  }
+  .accordion-section.open .accordion-content{
+    max-height: 500px; padding: 16px; border-top-color: var(--line);
+  }
+
+  /* CHECKBOX ITEMS */
+  .item-list{display: flex; flex-direction: column; gap: 10px;}
+  .item-checkbox{
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--paper); cursor: pointer; transition: border-color .15s;
+  }
+  .item-checkbox:hover{border-color: var(--ink-dim);}
+  .item-checkbox-left{display: flex; align-items: center; gap: 10px; font-size: 14.5px; font-weight: 500;}
+  .item-checkbox input[type="checkbox"]{accent-color: var(--signal); width: 16px; height: 16px; cursor: pointer;}
+  .item-price{font-family: var(--mono); font-size: 13.5px; color: var(--ink-dim);}
+
+  /* RESUMEN FLOTANTE DE COMPRA */
+  .summary-box{
+    background: var(--signal-dim); border: 1px solid rgba(52,84,209,0.2);
+    border-radius: 8px; padding: 20px; margin-bottom: 28px;
+  }
+  .summary-title{font-size: 15px; font-weight: 600; color: var(--signal); margin-bottom: 10px;}
+  .summary-items-list{font-size: 14px; color: var(--ink-dim); margin-bottom: 12px; list-style-type: none; padding: 0;}
+  .summary-items-list li{display: flex; justify-content: space-between; margin-bottom: 4px;}
+  .summary-total{
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid rgba(52,84,209,0.15); padding-top: 10px;
+    font-size: 16px; font-weight: 700; color: var(--ink);
+  }
+  .summary-total-price{font-family: var(--mono); color: var(--signal);}
+
+  /* CABECERA DE MÉTODO DE PAGO CON BOTÓN DE DESMARCAR CONDICIONAL */
+  .payment-header-container{
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+  }
+  .btn-uncheck{
+    display: none; background: none; border: 1px solid var(--line); padding: 3px 8px; font-size: 12px;
+    color: var(--ink-dim); border-radius: 4px; cursor: pointer; font-family: inherit;
+    transition: all .15s;
+  }
+  .btn-uncheck.active{display: inline-block;}
+  .btn-uncheck:hover{border-color: var(--ink); color: var(--ink);}
+
+  .payment-methods{display:flex; flex-direction:column; gap:12px; margin-top:8px;}
+  .payment-option{
+    display:flex; align-items:flex-start; gap:12px; padding:16px;
+    border:1px solid var(--line); border-radius:6px; background:var(--paper); cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .payment-option:hover{border-color:var(--ink-dim);}
+  .payment-option input[type="radio"]{margin-top:3px; accent-color:var(--signal); cursor:pointer;}
+  .payment-info{flex:1;}
+  .payment-name{font-weight:500; font-size:15px; display:block;}
+  .payment-desc{font-size:13px; color:var(--ink-dim); margin-top:2px;}
+
+  /* DINÁMICOS */
+  .dynamic-box{
+    margin-top:12px; padding:16px; background:var(--panel); border:1px solid var(--line);
+    border-radius:6px; font-size:14px; display:none;
+  }
+  .dynamic-box.active{display:block;}
+  .dynamic-box p{margin:0 0 8px 0; color:var(--ink-dim);}
+  .dynamic-box p.notice{margin-top:10px; font-size:13.5px; color:var(--ink);}
+  .highlight-code{font-family:var(--mono); font-weight:500; color:var(--ink); background:var(--paper); padding:4px 8px; border-radius:4px; display:inline-block;}
+
+  .btn-primary{
+    display:inline-block; width:100%;
+    background:var(--ink); color:var(--paper); border:none;
+    padding:14px 20px; font-size:15px; font-family:inherit; font-weight:500;
+    border-radius:6px; cursor:pointer; text-align:center; margin-top:12px;
+    transition:background .15s;
+  }
+  .btn-primary:hover{background:var(--signal); color:#fff;}
+  .stripe-link-btn{
+    display:inline-block; background:var(--signal); color:#fff; padding:8px 14px;
+    border-radius:4px; font-size:13.5px; font-weight:500; margin-top:6px;
+  }
+  .stripe-link-btn:hover{opacity:0.9;}
+
+  @media(max-width:600px){
+    .checkout-container{padding:20px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="wrap">
+    <a class="logo" href="index.html">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <circle cx="7" cy="15" r="3.2" fill="#14181C"/>
+        <circle cx="23" cy="7" r="3.2" fill="#3454D1"/>
+        <circle cx="23" cy="23" r="3.2" fill="#3454D1"/>
+        <line x1="7" y1="15" x2="23" y2="7" stroke="#14181C" stroke-width="1.4"/>
+        <line x1="7" y1="15" x2="23" y2="23" stroke="#14181C" stroke-width="1.4"/>
+      </svg>
+      <span class="logo-word">nodal<span class="dot">.</span></span>
+    </a>
+  </nav>
+</header>
+
+<div class="wrap breadcrumb-area">
+  <div class="breadcrumb">Pasarela de pago</div>
+  <a href="index.html" class="btn-back-home">Volver al inicio</a>
+</div>
+
+<div class="wrap">
+  <div class="checkout-container">
+    <h1 class="checkout-title">Finalizar contratación</h1>
+    <p class="checkout-subtitle">Completa tus datos, selecciona tus productos o servicios y elige tu método de pago preferido.</p>
+
+    <form action="gracias.html" method="GET" id="paymentForm" onsubmit="return validarFormulario(event)">
+      
+      <div class="form-group">
+        <label class="form-label" for="nombre">Nombre completo o Razón Social</label>
+        <input class="form-input" type="text" id="nombre" name="nombre" placeholder="Ej. Logística del Henares S.L." required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Correo electrónico de contacto</label>
+        <input class="form-input" type="email" id="email" name="email" placeholder="contacto@empresa.com" required>
+      </div>
+
+      <!-- SECCIÓN DESPLEGABLE DE PRODUCTOS (SIN ASTERISCO DE OBLIGATORIEDAD) -->
+      <div class="form-group">
+        <div class="accordion-section" id="acc-productos">
+          <button type="button" class="accordion-header" onclick="toggleAccordion('acc-productos')">
+            <span>Productos</span>
+            <span class="accordion-icon">v</span>
+          </button>
+          <div class="accordion-content">
+            <div class="item-list">
+              <label class="item-checkbox">
+                <div class="item-checkbox-left">
+                  <input type="checkbox" name="productos" value="Ninguno" data-name="Ninguno (Sin producto)" data-price="0" onchange="gestionarNinguno('productos', this)">
+                  <span>Ninguno</span>
+                </div>
+                <span class="item-price">0,00 €</span>
+              </label>
+              <label class="item-checkbox">
+                <div class="item-checkbox-left">
+                  <input type="checkbox" name="productos" value="NodalDesk" data-name="NodalDesk" data-price="99" onchange="calcularResumen()">
+                  <span>NodalDesk</span>
+                </div>
+                <span class="item-price">99,00 €</span>
+              </label>
+              <label class="item-checkbox">
+                <div class="item-checkbox-left">
+                  <input type="checkbox" name="productos" value="NodalCloud" data-name="NodalCloud" data-price="150" onchange="calcularResumen()">
+                  <span>NodalCloud</span>
+                </div>
+                <span class="item-price">150,00 €</span>
+              </label>
+              <label class="item-checkbox">
+                <div class="item-checkbox-left">
+                  <input type="checkbox" name="productos" value="NodalFlow" data-name="NodalFlow" data-price="120" onchange="calcularResumen()">
+                  <span>NodalFlow</span>
+                </div>
+                <span class="item-price">120,00 €</span>
+              </label>
+              <label class="item-checkbox">
+                <div class="item-checkbox-left">
+                  <input type="checkbox" name="productos" value="NodalGuard" data-name="NodalGuard" data-price="180" onchange="calcularResumen()">
+                  <span>NodalGuard</span>
+                </div>
+                <span class="item-price">180,00 €</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN DESPLEGABLE DE SERVICIOS (SIN ASTERISCO DE OBLIGATORIEDAD) -->
+      <div class="form-group">
+        <div class="accordion-section" id="acc-servicios">
+          <button type="button" class="accordion-header" onclick="toggleAccordion('acc-servicios')">
+            <span>Servicios</span>
+            <span class="accordion-icon">v</span>
+          </button>
+          <div class="accordion-content">
+            <div class="item-list">
+              <label class="item-checkbox">
+                <div class="item-checkbox-left">
+                  <input type="checkbox" name="servicios" value="Ninguno" data-name="Ninguno (Sin servicio)" data-price="0" onchange="gestionarNinguno('servicios', this)">
+                  <span>Ninguno</span>
+                </div>
+                <span class="item-price">0,00 €</span>
+              </label>
+              <label class="item-checkbox">
+                <div class="item-checkbox-left">
+                  <input type="checkbox" name="servicios" value="Soporte técnico gestionado" data-name="Soporte técnico gestionado" data-price="200" onchange="calcularResumen()">
+                  <span>Soporte técnico gestionado</span>
+                </div>
+                <span class="item-price">200,00 €</span>
+              </label>
+              <label class="item-checkbox">
+                <div class="item-checkbox-left">
+                  <input type="checkbox" name="servicios" value="Ciberseguridad y auditoría" data-name="Ciberseguridad y auditoría" data-price="350" onchange="calcularResumen()">
+                  <span>Ciberseguridad y auditoría</span>
+                </div>
+                <span class="item-price">350,00 €</span>
+              </label>
+              <label class="item-checkbox">
+                <div class="item-checkbox-left">
+                  <input type="checkbox" name="servicios" value="Desarrollo a medida" data-name="Desarrollo a medida" data-price="500" onchange="calcularResumen()">
+                  <span>Desarrollo a medida</span>
+                </div>
+                <span class="item-price">500,00 €</span>
+              </label>
+              <label class="item-checkbox">
+                <div class="item-checkbox-left">
+                  <input type="checkbox" name="servicios" value="Migración a la nube" data-name="Migración a la nube" data-price="300" onchange="calcularResumen()">
+                  <span>Migración a la nube</span>
+                </div>
+                <span class="item-price">300,00 €</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESUMEN DINÁMICO -->
+      <div class="summary-box" id="summaryBox" style="display: none;">
+        <div class="summary-title">Resumen de selección</div>
+        <div id="summaryContent"></div>
+        <div class="summary-total">
+          <span>Total estimado:</span>
+          <span class="summary-total-price" id="summaryTotal">0,00 €</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="payment-header-container">
+          <label class="form-label" style="margin-bottom:0;">Selecciona método de pago</label>
+          <button type="button" id="btnUncheck" class="btn-uncheck" onclick="quitarSeleccionPago()">Quitar selección</button>
+        </div>
+        
+        <div class="payment-methods">
+          
+          <!-- Opción 1: Transferencia -->
+          <label class="payment-option">
+            <input type="radio" name="metodo_pago" value="transferencia" required onclick="togglePaymentDetails('transferencia')">
+            <div class="payment-info">
+              <span class="payment-name">Transferencia Bancaria</span>
+              <span class="payment-desc">Realiza una transferencia directa a nuestra cuenta bancaria en España.</span>
+              
+              <div id="detalles-transferencia" class="dynamic-box">
+                <p>Por favor, realiza la transferencia indicando tu empresa como concepto al siguiente IBAN:</p>
+                <div class="highlight-code">ES91 2100 0450 1212 3456 7890</div>
+                <p class="notice">Debes enviar un comprobante de pago a <strong>nodalit@gmail.com</strong> indicando la empresa y el servicio o producto comprado.</p>
+              </div>
+            </div>
+          </label>
+
+          <!-- Opción 2: Bizum -->
+          <label class="payment-option">
+            <input type="radio" name="metodo_pago" value="bizum" required onclick="togglePaymentDetails('bizum')">
+            <div class="payment-info">
+              <span class="payment-name">Bizum</span>
+              <span class="payment-desc">Pago inmediato y seguro a través de teléfono móvil (exclusivo para España).</span>
+              
+              <div id="detalles-bizum" class="dynamic-box">
+                <p>Envía el importe correspondiente mediante Bizum al siguiente número comercial (servicio disponible únicamente en España):</p>
+                <div class="highlight-code">+34 689 123 456</div>
+                <p class="notice">Método aplicable solo en España. Debes enviar un comprobante de pago a <strong>nodalit@gmail.com</strong> indicando la empresa y el servicio o producto comprado.</p>
+              </div>
+            </div>
+          </label>
+
+          <!-- Opción 3: Stripe -->
+          <label class="payment-option">
+            <input type="radio" name="metodo_pago" value="stripe" required onclick="togglePaymentDetails('stripe')">
+            <div class="payment-info">
+              <span class="payment-name">Stripe (Tarjeta de crédito / débito)</span>
+              <span class="payment-desc">Plataforma externa segura para pagos con tarjeta.</span>
+              
+              <div id="detalles-stripe" class="dynamic-box">
+                <p>Haz clic en el siguiente enlace oficial para completar tu pago de forma segura en Stripe:</p>
+                <a href="https://stripe.com/es/payments" target="_blank" class="stripe-link-btn">Ir a la pasarela de Stripe ↗</a>
+                <p class="notice" style="margin-top: 12px;">Debes enviar un comprobante de pago a <strong>nodalit@gmail.com</strong> indicando la empresa y el servicio o producto comprado.</p>
+              </div>
+            </div>
+          </label>
+
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary">Confirmar y Pagar</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Control de apertura y cierre de acordeones (pestañas)
+  function toggleAccordion(id) {
+    const section = document.getElementById(id);
+    section.classList.toggle('open');
+  }
+
+  // Validación personalizada en el envío del formulario
+  function validarFormulario(event) {
+    const productosSeleccionados = document.querySelectorAll('input[name="productos"]:checked');
+    const serviciosSeleccionados = document.querySelectorAll('input[name="servicios"]:checked');
+
+    if (productosSeleccionados.length === 0) {
+      event.preventDefault();
+      const accProductos = document.getElementById('acc-productos');
+      accProductos.classList.add('open');
+      accProductos.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      alert('Por favor, selecciona al menos una opción en la sección de Productos (o selecciona "Ninguno").');
+      return false;
+    }
+
+    if (serviciosSeleccionados.length === 0) {
+      event.preventDefault();
+      const accServicios = document.getElementById('acc-servicios');
+      accServicios.classList.add('open');
+      accServicios.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      alert('Por favor, selecciona al menos una opción en la sección de Servicios (o selecciona "Ninguno").');
+      return false;
+    }
+
+    // Comprobar si se ha seleccionado "Ninguno" tanto en Productos como en Servicios
+    const productoNinguno = document.querySelector('input[name="productos"][value="Ninguno"]:checked');
+    const servicioNinguno = document.querySelector('input[name="servicios"][value="Ninguno"]:checked');
+
+    if (productoNinguno && servicioNinguno) {
+      event.preventDefault();
+      document.getElementById('acc-productos').classList.add('open');
+      document.getElementById('acc-servicios').classList.add('open');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      alert('No puedes realizar el pago ya que no has contratado ningún producto ni servicio.');
+      return false;
+    }
+
+    return true;
+  }
+
+  // Control de lógica cuando se marca o desmarca "Ninguno"
+  function gestionarNinguno(nombreGrupo, checkboxNinguno) {
+    const checkboxes = document.querySelectorAll(`input[name="${nombreGrupo}"]`);
+    if (checkboxNinguno.checked) {
+      checkboxes.forEach(cb => {
+        if (cb !== checkboxNinguno) cb.checked = false;
+      });
+    }
+    calcularResumen();
+  }
+
+  // Si se selecciona otro producto/servicio, desmarcar "Ninguno"
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', function() {
+      if (this.value !== "Ninguno" && this.checked) {
+        const grupo = this.name;
+        const ningunoCb = document.querySelector(`input[name="${grupo}"][value="Ninguno"]`);
+        if (ningunoCb) ningunoCb.checked = false;
+      }
+    });
+  });
+
+  // Control de visualización de detalles del método de pago y aparición del botón
+  function togglePaymentDetails(metodo) {
+    document.querySelectorAll('.dynamic-box').forEach(box => {
+      box.classList.remove('active');
+    });
+    const cajaActiva = document.getElementById('detalles-' + metodo);
+    if (cajaActiva) {
+      cajaActiva.classList.add('active');
+    }
+    
+    // Mostrar el botón de quitar selección al haber elegido uno
+    document.getElementById('btnUncheck').classList.add('active');
+  }
+
+  // Botón para desmarcar el método de pago activo, ocultar detalles y ocultar el botón
+  function quitarSeleccionPago() {
+    document.querySelectorAll('input[name="metodo_pago"]').forEach(radio => {
+      radio.checked = false;
+    });
+    document.querySelectorAll('.dynamic-box').forEach(box => {
+      box.classList.remove('active');
+    });
+    document.getElementById('btnUncheck').classList.remove('active');
+  }
+
+  // Cálculo en tiempo real del resumen desglosado por Productos y Servicios
+  function calcularResumen() {
+    const productosChecked = document.querySelectorAll('input[name="productos"]:checked');
+    const serviciosChecked = document.querySelectorAll('input[name="servicios"]:checked');
+    const summaryBox = document.getElementById('summaryBox');
+    const summaryContent = document.getElementById('summaryContent');
+    const summaryTotal = document.getElementById('summaryTotal');
+
+    // Muestra el resumen si se ha marcado al menos una opción en cualquier grupo
+    if (productosChecked.length === 0 && serviciosChecked.length === 0) {
+      summaryBox.style.display = 'none';
+      return;
+    }
+
+    summaryBox.style.display = 'block';
+    let total = 0;
+    let htmlContent = '';
+
+    // Subsección Productos
+    if (productosChecked.length > 0) {
+      htmlContent += `<div style="margin-bottom: 12px;">`;
+      htmlContent += `<div style="font-weight: 600; color: var(--ink); font-size: 14px; margin-bottom: 6px;">Productos:</div>`;
+      htmlContent += `<ul class="summary-items-list" style="padding-left: 12px;">`;
+      productosChecked.forEach(cb => {
+        const name = cb.getAttribute('data-name');
+        const price = parseFloat(cb.getAttribute('data-price'));
+        total += price;
+        htmlContent += `<li><span>${name}</span> <span class="mono">${price.toFixed(2)} €</span></li>`;
+      });
+      htmlContent += `</ul></div>`;
+    }
+
+    // Subsección Servicios
+    if (serviciosChecked.length > 0) {
+      htmlContent += `<div style="margin-bottom: 12px;">`;
+      htmlContent += `<div style="font-weight: 600; color: var(--ink); font-size: 14px; margin-bottom: 6px;">Servicios:</div>`;
+      htmlContent += `<ul class="summary-items-list" style="padding-left: 12px;">`;
+      serviciosChecked.forEach(cb => {
+        const name = cb.getAttribute('data-name');
+        const price = parseFloat(cb.getAttribute('data-price'));
+        total += price;
+        htmlContent += `<li><span>${name}</span> <span class="mono">${price.toFixed(2)} €</span></li>`;
+      });
+      htmlContent += `</ul></div>`;
+    }
+
+    summaryContent.innerHTML = htmlContent;
+    summaryTotal.textContent = total.toFixed(2) + ' €';
+  }
+</script>
+
+</body>
+</html>

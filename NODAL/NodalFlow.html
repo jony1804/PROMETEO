@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NodalFlow — Automatización de procesos internos | Nodal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F2F1EC;
+    --panel: #FFFFFF;
+    --ink: #14181C;
+    --ink-dim: #565D63;
+    --line: rgba(20,24,28,0.13);
+    --signal: #3454D1;
+    --signal-dim: #E9ECFB;
+    --mint: #2F9E77;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; font-size:16px; line-height:1.55;
+  }
+  h1,h2,h3{font-family:'IBM Plex Sans', sans-serif; font-weight:600; letter-spacing:-0.015em; margin:0;}
+  a{color:inherit; text-decoration:none;}
+  .wrap{max-width:1140px; margin:0 auto; padding:0 32px;}
+  img{display:block; max-width:100%;}
+  .mono{font-family:var(--mono);}
+
+  /* LOGO */
+  .logo{display:flex; align-items:center; gap:10px;}
+  .logo svg{flex-shrink:0;}
+  .logo-word{font-size:19px; font-weight:600; letter-spacing:-0.01em;}
+  .logo-word .dot{color:var(--signal);}
+
+  /* HEADER / NAV */
+  header{
+    position:sticky; top:0; z-index:80;
+    background:rgba(242,241,236,0.94); backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  nav.wrap{display:flex; align-items:center; justify-content:space-between; height:76px;}
+  .navlinks{display:flex; align-items:center; gap:6px; font-size:14.5px;}
+  .navitem{position:relative;}
+  .navitem > a, .navitem > button{
+    display:flex; align-items:center; gap:6px;
+    background:none; border:none; font:inherit; color:var(--ink);
+    padding:10px 14px; cursor:pointer; border-radius:3px;
+  }
+  .navitem > button:hover, .navitem > a:hover{background:rgba(20,24,28,0.05);}
+  .caret{width:8px; height:8px; border-right:1.5px solid var(--ink-dim); border-bottom:1.5px solid var(--ink-dim); transform:rotate(45deg); margin-top:-3px; transition:transform .15s;}
+  .navitem.open .caret{transform:rotate(225deg); margin-top:3px;}
+  .dropdown{
+    position:absolute; top:calc(100% + 8px); left:0; min-width:280px;
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    box-shadow:0 12px 28px rgba(20,24,28,0.10);
+    padding:8px; opacity:0; visibility:hidden; transform:translateY(-6px);
+    transition:opacity .15s, transform .15s, visibility .15s;
+  }
+  .navitem.open .dropdown{opacity:1; visibility:visible; transform:translateY(0);}
+  .dropdown a{
+    display:flex; flex-direction:column; gap:2px;
+    padding:10px 12px; border-radius:4px; font-size:14px;
+  }
+  .dropdown a:hover{background:var(--signal-dim);}
+  .dropdown a .item-name{font-weight:500; color:var(--ink);}
+  .dropdown a .item-desc{font-size:12.5px; color:var(--ink-dim); font-weight:400;}
+  .navright{display:flex; align-items:center; gap:14px;}
+
+  /* MOBILE NAV */
+  .hamburger{
+    display:none; flex-direction:column; justify-content:center; gap:5px;
+    width:38px; height:38px; background:none; border:1px solid var(--line);
+    border-radius:4px; cursor:pointer; padding:0 8px;
+  }
+  .hamburger span{display:block; width:100%; height:1.5px; background:var(--ink); transition:transform .2s, opacity .2s;}
+  .hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg);}
+  .hamburger.open span:nth-child(2){opacity:0;}
+  .hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);}
+
+  .mobile-menu{
+    display:none; position:fixed; top:76px; left:0; right:0; bottom:0;
+    background:var(--paper); z-index:79; overflow-y:auto;
+    padding:8px 24px 32px; border-top:1px solid var(--line);
+  }
+  .mobile-menu.open{display:block;}
+  .mobile-navitem{border-bottom:1px solid var(--line);}
+  .mobile-navitem > a, .mobile-navitem > button{
+    display:flex; align-items:center; justify-content:space-between; width:100%;
+    background:none; border:none; font:inherit; font-size:16px; font-weight:500; color:var(--ink);
+    padding:18px 2px; cursor:pointer; text-align:left;
+  }
+  .mobile-dropdown{display:none; padding:0 2px 16px;}
+  .mobile-navitem.open .mobile-dropdown{display:block;}
+  .mobile-navitem.open .caret{transform:rotate(225deg); margin-top:3px;}
+  .mobile-dropdown a{
+    display:flex; flex-direction:column; gap:2px; padding:12px 0; border-top:1px solid var(--line);
+  }
+  .mobile-dropdown a:first-child{border-top:none;}
+  .mobile-dropdown .item-name{font-weight:500; font-size:15px;}
+  .mobile-dropdown .item-desc{font-size:13px; color:var(--ink-dim);}
+  .mobile-cta{display:flex; flex-direction:column; gap:10px; margin-top:20px;}
+  .mobile-cta .btn-primary, .mobile-cta .btn-ghost{text-align:center;}
+
+  .btn-primary{
+    display:inline-block;
+    background:var(--ink); color:var(--paper); border:none;
+    padding:11px 20px; font-size:14.5px; font-family:inherit; font-weight:500;
+    border-radius:4px; cursor:pointer;
+  }
+  .btn-primary:hover{background:var(--signal); color:#fff;}
+  .btn-ghost{border:1px solid var(--line); padding:11px 20px; border-radius:4px; font-size:14.5px;}
+  .btn-ghost:hover{border-color:var(--ink);}
+
+  /* BREADCRUMB */
+  .breadcrumb{padding:22px 0 0; font-size:13.5px; color:var(--ink-dim);}
+  .breadcrumb a:hover{color:var(--signal);}
+
+  /* HERO PRODUCTO */
+  .hero{padding:32px 0 80px; border-bottom:1px solid var(--line);}
+  .hero-grid{display:grid; grid-template-columns:1.05fr 0.95fr; gap:56px; align-items:center;}
+  .product-tag{display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--signal); background:var(--signal-dim); padding:5px 12px; border-radius:20px; margin-bottom:18px;}
+  .hero h1{font-size:44px; line-height:1.12; max-width:15ch;}
+  .hero p.lede{font-size:17px; color:var(--ink-dim); max-width:44ch; margin:20px 0 28px;}
+  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap;}
+
+  /* MOCK: NODALFLOW DASHBOARD */
+  .dash{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    box-shadow:0 20px 40px rgba(20,24,28,0.08); overflow:hidden;
+  }
+  .dash-top{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px; border-bottom:1px solid var(--line);
+  }
+  .dash-title{font-size:13.5px; font-weight:500;}
+  .dash-status{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--mint); font-family:var(--mono);}
+  .dot-live{width:7px; height:7px; border-radius:50%; background:var(--mint);}
+  .dash-body{padding:18px; display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .metric{border:1px solid var(--line); border-radius:6px; padding:12px 14px;}
+  .metric .m-label{font-size:12px; color:var(--ink-dim); margin-bottom:4px;}
+  .metric .m-val{font-family:var(--mono); font-size:20px; font-weight:500;}
+  .metric .m-val.up{color:var(--mint);}
+  .guard-row{display:flex; align-items:center; justify-content:space-between; padding:10px 18px; border-top:1px solid var(--line); font-size:12.5px; font-family:var(--mono);}
+  .guard-row .g-host{color:var(--ink); font-weight:500;}
+  .guard-row .g-status{display:flex; align-items:center; gap:6px; color:var(--ink-dim);}
+
+  /* STRIP */
+  .strip{padding:40px 0; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:24px; flex-wrap:wrap;}
+  .strip-item{flex:1; min-width:170px;}
+  .strip-item .num{font-family:var(--mono); font-size:26px; color:var(--signal);}
+  .strip-item .label{font-size:13.5px; color:var(--ink-dim); margin-top:4px;}
+
+  /* SECTION */
+  .section{padding:88px 0; border-bottom:1px solid var(--line);}
+  .section-head{margin-bottom:44px; max-width:56ch;}
+  .section-head h2{font-size:32px; margin-bottom:14px;}
+  .section-head p{color:var(--ink-dim); font-size:15.5px;}
+
+  /* FEATURES */
+  .features{display:grid; grid-template-columns:repeat(4,1fr); gap:20px;}
+  .feature{background:var(--panel); border:1px solid var(--line); border-radius:7px; padding:24px 20px;}
+  .feature .f-num{font-family:var(--mono); font-size:12.5px; color:var(--signal); display:block; margin-bottom:14px;}
+  .feature h3{font-size:16.5px; margin-bottom:8px;}
+  .feature p{font-size:13.5px; color:var(--ink-dim); margin:0;}
+
+  /* WORKFLOW */
+  .flow{display:grid; grid-template-columns:repeat(3,1fr); gap:0; border:1px solid var(--line); border-radius:8px; overflow:hidden;}
+  .flow-step{padding:32px 28px; border-right:1px solid var(--line); position:relative; background:var(--panel);}
+  .flow-step:last-child{border-right:none;}
+  .flow-step .step-num{font-family:var(--mono); font-size:13px; color:var(--ink-dim); margin-bottom:14px; display:block;}
+  .flow-step h3{font-size:17px; margin-bottom:8px;}
+  .flow-step p{font-size:14px; color:var(--ink-dim); margin:0;}
+
+  /* PLANS */
+  .plans{display:grid; grid-template-columns:repeat(3,1fr); gap:0; border:1px solid var(--line); border-radius:8px; overflow:hidden;}
+  .plan{padding:32px 28px; border-right:1px solid var(--line); background:var(--panel);}
+  .plan:last-child{border-right:none;}
+  .plan.featured{background:var(--ink); color:var(--paper);}
+  .plan.featured .plan-per{color:rgba(242,241,236,0.65);}
+  .plan.featured li{color:rgba(242,241,236,0.8); border-top-color:rgba(242,241,236,0.15);}
+  .plan h3{font-size:19px; margin-bottom:4px;}
+  .plan .plan-price{font-family:var(--mono); font-size:28px; display:block; margin:14px 0 2px;}
+  .plan .plan-per{font-size:13px; color:var(--ink-dim);}
+  .plan ul{list-style:none; padding:0; margin:22px 0 26px; font-size:14px; color:var(--ink-dim);}
+  .plan li{padding:8px 0; border-top:1px solid var(--line);}
+  .plan li:first-child{border-top:none;}
+  .plan .btn-primary, .plan .btn-ghost{width:100%; text-align:center; display:block;}
+  .plan.featured .btn-primary{background:var(--paper); color:var(--ink);}
+  .plan.featured .btn-primary:hover{background:var(--signal); color:#fff;}
+  .plan.featured .btn-ghost{border-color:rgba(242,241,236,0.3);}
+
+  /* TESTIMONIAL */
+  .quote-block{border-left:2px solid var(--signal); padding-left:24px; max-width:60ch;}
+  .quote-block p{font-size:20px; font-family:'IBM Plex Sans',sans-serif; font-weight:500; line-height:1.5; margin-bottom:14px;}
+  .quote-block .who{font-size:13.5px; color:var(--ink-dim);}
+
+  /* CTA */
+  .cta{padding:80px 0; border-bottom:1px solid var(--line);}
+  .cta-box{background:var(--ink); color:var(--paper); border-radius:10px; padding:56px; display:flex; justify-content:space-between; align-items:center; gap:32px; flex-wrap:wrap;}
+  .cta-box h2{font-size:28px; max-width:20ch; color:var(--paper);}
+  .cta-box .btn-primary{background:var(--paper); color:var(--ink);}
+  .cta-box .btn-primary:hover{background:var(--signal); color:#fff;}
+  .cta-box .btn-ghost{border-color:rgba(242,241,236,0.3);}
+
+  /* FOOTER */
+  footer{padding:52px 0 36px;}
+  .foot-grid{display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:32px; margin-bottom:36px;}
+  .foot-grid h4{font-size:13px; margin-bottom:14px; color:var(--ink-dim); font-weight:500;}
+  .foot-grid ul{list-style:none; padding:0; margin:0; font-size:14px;}
+  .foot-grid li{margin-bottom:9px;}
+  .foot-grid a:hover{color:var(--signal);}
+  .foot-bottom{border-top:1px solid var(--line); padding-top:22px; font-size:13px; color:var(--ink-dim); display:flex; justify-content:space-between;}
+
+  @media (max-width: 900px){
+    .hero-grid{grid-template-columns:1fr;}
+    .features{grid-template-columns:1fr 1fr;}
+    .flow, .plans{grid-template-columns:1fr;}
+    .flow-step, .plan{border-right:none; border-bottom:1px solid var(--line);}
+    .navlinks{display:none;}
+    .navright .btn-ghost{display:none;}
+    .hamburger{display:flex;}
+    .hero h1{font-size:32px;}
+    .foot-grid{grid-template-columns:1fr 1fr;}
+    .cta-box{padding:36px;}
+  }
+
+  @media (max-width: 560px){
+    .features{grid-template-columns:1fr;}
+    .foot-grid{grid-template-columns:1fr;}
+    .dash-body{grid-template-columns:1fr;}
+    .navright .btn-primary{padding:9px 14px; font-size:13.5px;}
+    .cta-box h2{font-size:22px;}
+    .quote-block p{font-size:17px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="wrap">
+    <a class="logo" href="index.html">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <circle cx="7" cy="15" r="3.2" fill="#14181C"/>
+        <circle cx="23" cy="7" r="3.2" fill="#3454D1"/>
+        <circle cx="23" cy="23" r="3.2" fill="#3454D1"/>
+        <line x1="7" y1="15" x2="23" y2="7" stroke="#14181C" stroke-width="1.4"/>
+        <line x1="7" y1="15" x2="23" y2="23" stroke="#14181C" stroke-width="1.4"/>
+      </svg>
+      <span class="logo-word">nodal<span class="dot">.</span></span>
+    </a>
+
+    <div class="navlinks">
+      <div class="navitem" id="navProductos">
+        <button onclick="toggleMenu('navProductos')">Productos <span class="caret"></span></button>
+        <div class="dropdown">
+          <a href="NodalDesk.html"><span class="item-name">NodalDesk</span><span class="item-desc">Mesa de ayuda y gestión de tickets</span></a>
+          <a href="NodalGuard.html"><span class="item-name">NodalGuard</span><span class="item-desc">Monitoreo y seguridad de endpoints</span></a>
+          <a href="NodalCloud.html"><span class="item-name">NodalCloud</span><span class="item-desc">Backup y almacenamiento gestionado</span></a>
+          <a href="NodalFlow.html"><span class="item-name">NodalFlow</span><span class="item-desc">Automatización de procesos internos</span></a>
+        </div>
+      </div>
+
+      <div class="navitem" id="navServicios">
+        <button onclick="toggleMenu('navServicios')">Servicios <span class="caret"></span></button>
+        <div class="dropdown">
+          <a href="SoporteGestionado.html"><span class="item-name">Soporte técnico gestionado</span><span class="item-desc">Atención remota y en sitio, 24/7</span></a>
+          <a href="Ciberseguridad.html"><span class="item-name">Ciberseguridad y auditoría</span><span class="item-desc">Pentesting, cumplimiento, respuesta a incidentes</span></a>
+          <a href="DesarrolloMedida.html"><span class="item-name">Desarrollo a medida</span><span class="item-desc">Software interno y aplicaciones web</span></a>
+          <a href="MigracionCloud.html"><span class="item-name">Migración a la nube</span><span class="item-desc">Consultoría e implementación en AWS y Azure</span></a>
+        </div>
+      </div>
+
+      <div class="navitem"><a href="index.html#nosotros">Quiénes somos</a></div>
+      <div class="navitem"><a href="index.html#contacto">Contacto</a></div>
+    </div>
+
+    <div class="navright">
+      <a class="btn-ghost" href="index.html#contacto">Iniciar sesión</a>
+      <a class="btn-primary" href="pasareladepago.html">Contratar servicios</a>
+      <button class="hamburger" id="hamburger" aria-label="Abrir menú" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-navitem" id="mNavProductos">
+    <button onclick="toggleMobile('mNavProductos')">Productos <span class="caret"></span></button>
+    <div class="mobile-dropdown">
+      <a href="NodalDesk.html"><span class="item-name">NodalDesk</span><span class="item-desc">Mesa de ayuda y gestión de tickets</span></a>
+      <a href="NodalGuard.html"><span class="item-name">NodalGuard</span><span class="item-desc">Monitoreo y seguridad de endpoints</span></a>
+      <a href="NodalCloud.html"><span class="item-name">NodalCloud</span><span class="item-desc">Backup y almacenamiento gestionado</span></a>
+      <a href="NodalFlow.html"><span class="item-name">NodalFlow</span><span class="item-desc">Automatización de procesos internos</span></a>
+    </div>
+  </div>
+
+  <div class="mobile-navitem" id="mNavServicios">
+    <button onclick="toggleMobile('mNavServicios')">Servicios <span class="caret"></span></button>
+    <div class="mobile-dropdown">
+      <a href="SoporteGestionado.html"><span class="item-name">Soporte técnico gestionado</span><span class="item-desc">Atención remota y en sitio, 24/7</span></a>
+      <a href="Ciberseguridad.html"><span class="item-name">Ciberseguridad y auditoría</span><span class="item-desc">Pentesting, cumplimiento, respuesta a incidentes</span></a>
+      <a href="DesarrolloMedida.html"><span class="item-name">Desarrollo a medida</span><span class="item-desc">Software interno y aplicaciones web</span></a>
+      <a href="MigracionCloud.html"><span class="item-name">Migración a la nube</span><span class="item-desc">Consultoría e implementación en AWS y Azure</span></a>
+    </div>
+  </div>
+
+  <div class="mobile-navitem"><a href="index.html#nosotros" onclick="closeMobileMenu()">Quiénes somos</a></div>
+  <div class="mobile-navitem"><a href="index.html#contacto" onclick="closeMobileMenu()">Contacto</a></div>
+
+  <div class="mobile-cta">
+    <a class="btn-ghost" href="index.html#contacto" onclick="closeMobileMenu()">Iniciar sesión</a>
+    <a class="btn-primary" href="pasareladepago.html" onclick="closeMobileMenu()">Contratar servicios</a>
+  </div>
+</div>
+
+<div class="wrap breadcrumb">
+  <a href="index.html">Inicio</a> / <a href="index.html#productos">Productos</a> / NodalFlow
+</div>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="product-tag">Producto 04 · Automatización & Orquestación</span>
+      <h1>Elimina tareas repetitivas y conecta tu software.</h1>
+      <p class="lede">NodalFlow orquesta tus procesos de negocio, integrando tus herramientas existentes sin necesidad de escribir código y reduciendo los errores operativos al mínimo.</p>
+      <div class="hero-ctas">
+        <a class="btn-primary" href="pasareladepago.html">Contratar servicios</a>
+        <a class="btn-ghost" href="#precios">Ver precios</a>
+      </div>
+    </div>
+
+    <div class="dash">
+      <div class="dash-top">
+        <span class="dash-title">NodalFlow — Monitor de ejecuciones</span>
+        <span class="dash-status"><span class="dot-live"></span>motor activo</span>
+      </div>
+      <div class="dash-body">
+        <div class="metric"><div class="m-label">Flujos activos</div><div class="m-val up">38 flujos</div></div>
+        <div class="metric"><div class="m-label">Ejecuciones hoy</div><div class="m-val">12,480</div></div>
+        <div class="metric"><div class="m-label">Tasa de éxito</div><div class="m-val up">99.8%</div></div>
+        <div class="metric"><div class="m-label">Tiempo ahorrado</div><div class="m-val up">~145 hrs/mes</div></div>
+      </div>
+      <div class="guard-row">
+        <span class="g-host">Alta de empleado (HR ➔ IT)</span>
+        <span class="g-status"><span class="dot-live"></span>Completado (1.2s)</span>
+      </div>
+      <div class="guard-row">
+        <span class="g-host">Sincronización ERP ➔ CRM</span>
+        <span class="g-status"><span class="dot-live"></span>En ejecución</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap strip">
+  <div class="strip-item"><div class="num">+200</div><div class="label">conectores preintegrados (ERP, CRM, Cloud)</div></div>
+  <div class="strip-item"><div class="num">&lt; 2s</div><div class="label">tiempo promedio de ejecución por flujo</div></div>
+  <div class="strip-item"><div class="num">0</div><div class="label">código necesario para crear nuevos flujos</div></div>
+  <div class="strip-item"><div class="num">100%</div><div class="label">trazabilidad y logs de auditoría en tiempo real</div></div>
+</div>
+
+<section class="section" id="funciones">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Qué incluye</h2>
+      <p>Todo lo necesario para conectar tus datos, optimizar el trabajo de tus equipos y acelerar la transformación digital.</p>
+    </div>
+    <div class="features">
+      <div class="feature">
+        <span class="f-num">01</span>
+        <h3>Editor Visual No-Code</h3>
+        <p>Crea diagramas de flujo interactivos arrastrando bloques de acción, condiciones y disparadores sin programar.</p>
+      </div>
+      <div class="feature">
+        <span class="f-num">02</span>
+        <h3>Integración de APIs y Webhooks</h3>
+        <p>Conecta sistemas propios o de terceros mediante REST APIs, GraphQL o recepción de datos en tiempo real.</p>
+      </div>
+      <div class="feature">
+        <span class="f-num">03</span>
+        <h3>Procesamiento Inteligente</h3>
+        <p>Extrae y clasifica información de documentos PDF, correos o facturas automáticamente usando IA.</p>
+      </div>
+      <div class="feature">
+        <span class="f-num">04</span>
+        <h3>Alertas y Reintentos</h3>
+        <p>Gestión automática de excepciones y notificaciones directas a Slack, Teams o Email ante cualquier error.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Cómo funciona</h2>
+      <p>Pon en marcha tus automatizaciones en tres sencillos pasos.</p>
+    </div>
+    <div class="flow">
+      <div class="flow-step">
+        <span class="step-num">Paso 1</span>
+        <h3>Selecciona el disparador</h3>
+        <p>Define el evento inicial: la llegada de un correo, un nuevo registro en el CRM o un horario programado.</p>
+      </div>
+      <div class="flow-step">
+        <span class="step-num">Paso 2</span>
+        <h3>Modela la lógica</h3>
+        <p>Filtra datos, aplica transformaciones y añade condiciones antes de enviar la información al siguiente sistema.</p>
+      </div>
+      <div class="flow-step">
+        <span class="step-num">Paso 3</span>
+        <h3>Activa y supervisa</h3>
+        <p>Publica el flujo con un solo clic y monitorea el rendimiento e historial detallado desde la consola central.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="precios">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Precios</h2>
+      <p>Escala tus automatizaciones a medida que crece el volumen operativo de tu empresa.</p>
+    </div>
+    <div class="plans">
+      <div class="plan">
+        <h3>Starter</h3>
+        <span class="plan-price">49 €</span>
+        <span class="plan-per">mes / hasta 10,000 tareas</span>
+        <ul>
+          <li>Hasta 5 flujos activos</li>
+          <li>Ejecución cada 15 minutos</li>
+          <li>Conectores estándar</li>
+        </ul>
+        <a class="btn-ghost" href="index.html#contacto">Probar gratis</a>
+      </div>
+      <div class="plan featured">
+        <h3>Pro Automation</h3>
+        <span class="plan-price">129 €</span>
+        <span class="plan-per">mes / hasta 50,000 tareas</span>
+        <ul>
+          <li>Flujos ilimitados</li>
+          <li>Ejecución en tiempo real</li>
+          <li>Conectores premium y webhooks</li>
+          <li>Procesamiento de documentos con IA</li>
+        </ul>
+        <a class="btn-primary" href="pasareladepago.html">Contratar servicios</a>
+      </div>
+      <div class="plan">
+        <h3>Enterprise</h3>
+        <span class="plan-price">A medida</span>
+        <span class="plan-per">tareas ilimitadas</span>
+        <ul>
+          <li>Despliegue dedicado u On-Premise</li>
+          <li>Conectores personalizados a medida</li>
+          <li>SLA de disponibilidad 99.9%</li>
+        </ul>
+        <a class="btn-ghost" href="index.html#contacto">Hablar con ventas</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="border-bottom:none;">
+  <div class="wrap">
+    <div class="quote-block">
+      <p>Antes dedicábamos más de 10 horas semanales a sincronizar datos entre la tienda online y el ERP manualmente. Con NodalFlow, el proceso ocurre en tiempo real sin ningún error humano.</p>
+      <div class="who">David M. — responsable de operaciones, e-Commerce distribuidor</div>
+    </div>
+  </div>
+</section>
+
+<section class="cta" id="contacto">
+  <div class="wrap">
+    <div class="cta-box">
+      <h2>Empieza a automatizar los procesos de tu empresa.</h2>
+      <div style="display:flex; gap:14px; flex-wrap:wrap;">
+        <a class="btn-primary" href="pasareladepago.html">Contratar servicios</a>
+        <a class="btn-ghost" href="index.html#servicios">Ver servicios de desarrollo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="logo" href="index.html" style="margin-bottom:12px;">
+          <svg width="26" height="26" viewBox="0 0 30 30" fill="none">
+            <circle cx="7" cy="15" r="3.2" fill="#14181C"/>
+            <circle cx="23" cy="7" r="3.2" fill="#3454D1"/>
+            <circle cx="23" cy="23" r="3.2" fill="#3454D1"/>
+            <line x1="7" y1="15" x2="23" y2="7" stroke="#14181C" stroke-width="1.4"/>
+            <line x1="7" y1="15" x2="23" y2="23" stroke="#14181C" stroke-width="1.4"/>
+          </svg>
+          <span class="logo-word">nodal<span class="dot">.</span></span>
+        </a>
+        <p style="color:var(--ink-dim); font-size:14px; max-width:32ch;">Sistemas y soporte informático para empresas. Sitio de demostración con fines de prueba.</p>
+      </div>
+      <div>
+        <h4>Productos</h4>
+        <ul><li><a href="NodalDesk.html">NodalDesk</a></li><li><a href="NodalGuard.html">NodalGuard</a></li><li><a href="NodalCloud.html">NodalCloud</a></li><li><a href="NodalFlow.html">NodalFlow</a></li></ul>
+      </div>
+      <div>
+        <h4>Servicios</h4>
+        <ul><li><a href="SoporteGestionado.html">Soporte gestionado</a></li><li><a href="Ciberseguridad.html">Ciberseguridad</a></li><li><a href="DesarrolloMedida.html">Desarrollo a medida</a></li><li><a href="MigracionCloud.html">Migración cloud</a></li></ul>
+      </div>
+      <div>
+        <h4>Compañía</h4>
+        <ul><li><a href="index.html#nosotros">Quiénes somos</a></li><li><a href="#">Empleo</a></li><li><a href="index.html#contacto">Contacto</a></li></ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Nodal Sistemas — sitio de prueba</span>
+      <span>Madrid, España</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function toggleMenu(id){
+    const item = document.getElementById(id);
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.navitem.open').forEach(el => el.classList.remove('open'));
+    if(!wasOpen) item.classList.add('open');
+  }
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('.navitem')){
+      document.querySelectorAll('.navitem.open').forEach(el => el.classList.remove('open'));
+    }
+  });
+
+  // Menú móvil
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+
+  function closeMobileMenu(){
+    mobileMenu.classList.remove('open');
+    hamburger.classList.remove('open');
+    hamburger.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+
+  hamburger.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('open');
+    hamburger.classList.toggle('open', isOpen);
+    hamburger.setAttribute('aria-expanded', String(isOpen));
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  });
+
+  function toggleMobile(id){
+    const item = document.getElementById(id);
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.mobile-navitem.open').forEach(el => el.classList.remove('open'));
+    if(!wasOpen) item.classList.add('open');
+  }
+</script>
+
+</body>
+</html>

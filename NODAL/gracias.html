@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gracias por tu compra — Nodal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F2F1EC;
+    --panel: #FFFFFF;
+    --ink: #14181C;
+    --ink-dim: #565D63;
+    --line: rgba(20,24,28,0.13);
+    --signal: #3454D1;
+    --signal-dim: #E9ECFB;
+    --mint: #2F9E77;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; font-size:16px; line-height:1.55;
+    display: flex; flex-direction: column; min-height: 100vh;
+  }
+  h1,h2,h3{font-family:'IBM Plex Sans', sans-serif; font-weight:600; letter-spacing:-0.015em; margin:0;}
+  a{color:inherit; text-decoration:none;}
+  .wrap{max-width:800px; margin:0 auto; padding:0 32px; width: 100%;}
+  .mono{font-family:var(--mono);}
+
+  /* LOGO */
+  .logo{display:flex; align-items:center; gap:10px;}
+  .logo svg{flex-shrink:0;}
+  .logo-word{font-size:19px; font-weight:600; letter-spacing:-0.01em;}
+  .logo-word .dot{color:var(--signal);}
+
+  /* HEADER */
+  header{
+    position:sticky; top:0; z-index:80;
+    background:rgba(242,241,236,0.94); backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  nav.wrap{display:flex; align-items:center; justify-content:space-between; height:76px; max-width:1140px;}
+
+  /* MAIN CONTENT / THANKS BOX */
+  .main-content{
+    flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 0;
+  }
+  .thanks-container{
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 50px 40px; text-align: center; box-shadow: 0 12px 28px rgba(20,24,28,0.05);
+    max-width: 600px; width: 100%; margin: 0 auto;
+  }
+  .thanks-title{font-size: 28px; margin-bottom: 12px; color: var(--ink);}
+  .thanks-subtitle{color: var(--ink-dim); font-size: 15px; margin-bottom: 30px; line-height: 1.6;}
+  
+  .info-details{
+    background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
+    padding: 16px; font-size: 14px; color: var(--ink-dim); margin-bottom: 30px; text-align: left;
+  }
+  .info-details strong{color: var(--ink);}
+
+  .btn-home{
+    display: inline-block; background: var(--signal); color: #fff; border: none;
+    padding: 14px 28px; font-size: 15px; font-family: inherit; font-weight: 500;
+    border-radius: 6px; cursor: pointer; transition: opacity .15s;
+  }
+  .btn-home:hover{opacity: 0.9;}
+
+  @media(max-width:600px){
+    .thanks-container{padding: 30px 20px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="wrap" style="max-width: 800px;">
+    <a class="logo" href="index.html">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <circle cx="7" cy="15" r="3.2" fill="#14181C"/>
+        <circle cx="23" cy="7" r="3.2" fill="#3454D1"/>
+        <circle cx="23" cy="23" r="3.2" fill="#3454D1"/>
+        <line x1="7" y1="15" x2="23" y2="7" stroke="#14181C" stroke-width="1.4"/>
+        <line x1="7" y1="15" x2="23" y2="23" stroke="#14181C" stroke-width="1.4"/>
+      </svg>
+      <span class="logo-word">nodal<span class="dot">.</span></span>
+    </a>
+  </nav>
+</header>
+
+<div class="main-content">
+  <div class="wrap">
+    <div class="thanks-container">
+      <h1 class="thanks-title">¡Gracias por tu contratación!</h1>
+      <p class="thanks-subtitle">Hemos recibido correctamente los datos de tu solicitud y el método de pago seleccionado. Nuestro equipo procesará la orden a la mayor brevedad.</p>
+
+      <div class="info-details">
+        <p style="margin:0 0 8px 0;">Recuerda que si has seleccionado <strong>Transferencia Bancaria</strong> o <strong>Bizum</strong>, es necesario enviar el comprobante de pago correspondiente a <strong>nodalit@gmail.com</strong> indicando el nombre de tu empresa.</p>
+      </div>
+
+      <a href="index.html" class="btn-home">Volver al inicio</a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

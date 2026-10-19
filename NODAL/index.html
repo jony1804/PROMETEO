@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nodal — Sistemas informáticos para empresas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F2F1EC;
+    --panel: #FFFFFF;
+    --ink: #14181C;
+    --ink-dim: #565D63;
+    --line: rgba(20,24,28,0.13);
+    --signal: #3454D1;
+    --signal-dim: #E9ECFB;
+    --mint: #2F9E77;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; font-size:16px; line-height:1.55;
+  }
+  h1,h2,h3{font-family:'IBM Plex Sans', sans-serif; font-weight:600; letter-spacing:-0.015em; margin:0;}
+  a{color:inherit; text-decoration:none;}
+  .wrap{max-width:1140px; margin:0 auto; padding:0 32px;}
+  img{display:block; max-width:100%;}
+  .mono{font-family:var(--mono);}
+
+  /* LOGO */
+  .logo{display:flex; align-items:center; gap:10px;}
+  .logo svg{flex-shrink:0;}
+  .logo-word{font-size:19px; font-weight:600; letter-spacing:-0.01em;}
+  .logo-word .dot{color:var(--signal);}
+
+  /* HEADER / NAV */
+  header{
+    position:sticky; top:0; z-index:80;
+    background:rgba(242,241,236,0.94); backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  nav.wrap{display:flex; align-items:center; justify-content:space-between; height:76px;}
+  .navlinks{display:flex; align-items:center; gap:6px; font-size:14.5px;}
+  .navitem{position:relative;}
+  .navitem > a, .navitem > button{
+    display:flex; align-items:center; gap:6px;
+    background:none; border:none; font:inherit; color:var(--ink);
+    padding:10px 14px; cursor:pointer; border-radius:3px;
+  }
+  .navitem > button:hover, .navitem > a:hover{background:rgba(20,24,28,0.05);}
+  .caret{width:8px; height:8px; border-right:1.5px solid var(--ink-dim); border-bottom:1.5px solid var(--ink-dim); transform:rotate(45deg); margin-top:-3px; transition:transform .15s;}
+  .navitem.open .caret{transform:rotate(225deg); margin-top:3px;}
+  .dropdown{
+    position:absolute; top:calc(100% + 8px); left:0; min-width:280px;
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    box-shadow:0 12px 28px rgba(20,24,28,0.10);
+    padding:8px; opacity:0; visibility:hidden; transform:translateY(-6px);
+    transition:opacity .15s, transform .15s, visibility .15s;
+  }
+  .navitem.open .dropdown{opacity:1; visibility:visible; transform:translateY(0);}
+  .dropdown a{
+    display:flex; flex-direction:column; gap:2px;
+    padding:10px 12px; border-radius:4px; font-size:14px;
+  }
+  .dropdown a:hover{background:var(--signal-dim);}
+  .dropdown a .item-name{font-weight:500; color:var(--ink);}
+  .dropdown a .item-desc{font-size:12.5px; color:var(--ink-dim); font-weight:400;}
+  .navright{display:flex; align-items:center; gap:14px;}
+
+  /* MOBILE NAV */
+  .hamburger{
+    display:none; flex-direction:column; justify-content:center; gap:5px;
+    width:38px; height:38px; background:none; border:1px solid var(--line);
+    border-radius:4px; cursor:pointer; padding:0 8px;
+  }
+  .hamburger span{display:block; width:100%; height:1.5px; background:var(--ink); transition:transform .2s, opacity .2s;}
+  .hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg);}
+  .hamburger.open span:nth-child(2){opacity:0;}
+  .hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);}
+
+  .mobile-menu{
+    display:none; position:fixed; top:76px; left:0; right:0; bottom:0;
+    background:var(--paper); z-index:79; overflow-y:auto;
+    padding:8px 24px 32px; border-top:1px solid var(--line);
+  }
+  .mobile-menu.open{display:block;}
+  .mobile-navitem{border-bottom:1px solid var(--line);}
+  .mobile-navitem > a, .mobile-navitem > button{
+    display:flex; align-items:center; justify-content:space-between; width:100%;
+    background:none; border:none; font:inherit; font-size:16px; font-weight:500; color:var(--ink);
+    padding:18px 2px; cursor:pointer; text-align:left;
+  }
+  .mobile-dropdown{display:none; padding:0 2px 16px;}
+  .mobile-navitem.open .mobile-dropdown{display:block;}
+  .mobile-navitem.open .caret{transform:rotate(225deg); margin-top:3px;}
+  .mobile-dropdown a{
+    display:flex; flex-direction:column; gap:2px; padding:12px 0; border-top:1px solid var(--line);
+  }
+  .mobile-dropdown a:first-child{border-top:none;}
+  .mobile-dropdown .item-name{font-weight:500; font-size:15px;}
+  .mobile-dropdown .item-desc{font-size:13px; color:var(--ink-dim);}
+  .mobile-cta{display:flex; flex-direction:column; gap:10px; margin-top:20px;}
+  .mobile-cta .btn-primary, .mobile-cta .btn-ghost{text-align:center;}
+
+  .btn-primary{
+    display:inline-block;
+    background:var(--ink); color:var(--paper); border:none;
+    padding:11px 20px; font-size:14.5px; font-family:inherit; font-weight:500;
+    border-radius:4px; cursor:pointer; text-align:center;
+  }
+  .btn-primary:hover{background:var(--signal); color:#ffffff;}
+  .btn-ghost{border:1px solid var(--line); padding:11px 20px; border-radius:4px; font-size:14.5px;}
+  .btn-ghost:hover{border-color:var(--ink);}
+
+  /* HERO */
+  .hero{padding:88px 0 80px; border-bottom:1px solid var(--line);}
+  .hero-grid{display:grid; grid-template-columns:1.05fr 0.95fr; gap:56px; align-items:center;}
+  .eyebrow-plain{font-size:14px; color:var(--ink-dim); margin-bottom:16px;}
+  .hero h1{font-size:48px; line-height:1.1; max-width:15ch;}
+  .hero p.lede{font-size:17.5px; color:var(--ink-dim); max-width:44ch; margin:22px 0 30px;}
+  .hero-ctas{display:flex; gap:14px;}
+
+  /* DASHBOARD MOCK */
+  .dash{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    box-shadow:0 20px 40px rgba(20,24,28,0.08); overflow:hidden;
+  }
+  .dash-top{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px; border-bottom:1px solid var(--line);
+  }
+  .dash-title{font-size:13.5px; font-weight:500;}
+  .dash-status{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--mint); font-family:var(--mono);}
+  .dot-live{width:7px; height:7px; border-radius:50%; background:var(--mint);}
+  .dash-body{padding:20px 18px 24px; display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .metric{border:1px solid var(--line); border-radius:6px; padding:14px 16px;}
+  .metric .m-label{font-size:12px; color:var(--ink-dim); margin-bottom:6px;}
+  .metric .m-val{font-family:var(--mono); font-size:22px; font-weight:500;}
+  .metric .m-val.up{color:var(--mint);}
+  .dash-log{grid-column:1 / -1; border:1px solid var(--line); border-radius:6px; padding:14px 16px; font-family:var(--mono); font-size:12px; color:var(--ink-dim); line-height:1.9;}
+  .dash-log span{color:var(--mint); margin-right:8px;}
+
+  /* STRIP */
+  .strip{padding:40px 0; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:24px; flex-wrap:wrap;}
+  .strip-item{flex:1; min-width:170px;}
+  .strip-item .num{font-family:var(--mono); font-size:26px; color:var(--signal);}
+  .strip-item .label{font-size:13.5px; color:var(--ink-dim); margin-top:4px;}
+
+  /* SECTION */
+  .section{padding:92px 0; border-bottom:1px solid var(--line);}
+  .section-head{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:44px; gap:24px;}
+  .section-head h2{font-size:32px;}
+  .section-head p{color:var(--ink-dim); max-width:38ch; font-size:15px;}
+
+  /* QUIENES SOMOS */
+  .about-grid{display:grid; grid-template-columns:0.9fr 1.1fr; gap:64px; align-items:start;}
+  .about-grid p{color:var(--ink-dim); font-size:15.5px; max-width:48ch; margin-bottom:16px;}
+  .about-values{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .value-card{border:1px solid var(--line); border-radius:6px; padding:20px;}
+  .value-card .v-num{font-family:var(--mono); font-size:12.5px; color:var(--signal); margin-bottom:10px; display:block;}
+  .value-card h3{font-size:16px; margin-bottom:6px;}
+  .value-card p{font-size:13.5px; color:var(--ink-dim); margin:0; max-width:none;}
+
+  /* PRODUCTOS / SERVICIOS GRID */
+  .cards4{display:grid; grid-template-columns:repeat(4,1fr); gap:20px;}
+  .pcard{background:var(--panel); border:1px solid var(--line); border-radius:7px; padding:24px 20px; display:flex; flex-direction:column; gap:10px; transition:border-color .15s, transform .15s;}
+  .pcard:hover{border-color:var(--signal); transform:translateY(-2px);}
+  .pcard .p-index{font-family:var(--mono); font-size:12.5px; color:var(--ink-dim);}
+  .pcard h3{font-size:17px;}
+  .pcard p{font-size:13.5px; color:var(--ink-dim); margin:0; flex:1;}
+  .pcard .p-link{font-size:13.5px; color:var(--signal); font-weight:500; margin-top:6px;}
+
+  /* TESTIMONIALS */
+  .quotes{display:grid; grid-template-columns:repeat(3,1fr); gap:28px;}
+  .quote{padding:0 0 0 18px; border-left:2px solid var(--signal);}
+  .quote p{font-size:15.5px; margin-bottom:12px;}
+  .quote .who{font-size:13px; color:var(--ink-dim);}
+
+  /* CTA */
+  .cta{padding:80px 0; text-align:left; border-bottom:1px solid var(--line);}
+  .cta-box{background:var(--ink); color:var(--paper); border-radius:10px; padding:56px; display:flex; justify-content:space-between; align-items:center; gap:32px; flex-wrap:wrap;}
+  .cta-box h2{font-size:28px; max-width:20ch; color:var(--paper);}
+  .cta-box .btn-primary{background:var(--paper); color:var(--ink);}
+  .cta-box .btn-primary:hover{background:var(--signal); color:#fff;}
+
+  /* FOOTER */
+  footer{padding:52px 0 36px;}
+  .foot-grid{display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:32px; margin-bottom:36px;}
+  .foot-grid h4{font-size:13px; margin-bottom:14px; color:var(--ink-dim); font-weight:500;}
+  .foot-grid ul{list-style:none; padding:0; margin:0; font-size:14px;}
+  .foot-grid li{margin-bottom:9px;}
+  .foot-grid a:hover{color:var(--signal);}
+  .foot-bottom{border-top:1px solid var(--line); padding-top:22px; font-size:13px; color:var(--ink-dim); display:flex; justify-content:space-between;}
+
+  @media (max-width: 900px){
+    .hero-grid, .about-grid{grid-template-columns:1fr;}
+    .cards4{grid-template-columns:1fr 1fr;}
+    .quotes{grid-template-columns:1fr;}
+    .navlinks{display:none;}
+    .navright .btn-ghost{display:none;}
+    .hamburger{display:flex;}
+    .hero h1{font-size:34px;}
+    .foot-grid{grid-template-columns:1fr 1fr;}
+    .cta-box{padding:36px;}
+  }
+
+  @media (max-width: 560px){
+    .cards4{grid-template-columns:1fr;}
+    .foot-grid{grid-template-columns:1fr;}
+    .dash-body{grid-template-columns:1fr;}
+    .strip{gap:28px;}
+    .navright .btn-primary{padding:9px 14px; font-size:13.5px;}
+    .cta-box h2{font-size:22px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="wrap">
+    <div class="logo">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <circle cx="7" cy="15" r="3.2" fill="#14181C"/>
+        <circle cx="23" cy="7" r="3.2" fill="#3454D1"/>
+        <circle cx="23" cy="23" r="3.2" fill="#3454D1"/>
+        <line x1="7" y1="15" x2="23" y2="7" stroke="#14181C" stroke-width="1.4"/>
+        <line x1="7" y1="15" x2="23" y2="23" stroke="#14181C" stroke-width="1.4"/>
+      </svg>
+      <span class="logo-word">nodal<span class="dot">.</span></span>
+    </div>
+
+    <div class="navlinks">
+      <div class="navitem" id="navProductos">
+        <button onclick="toggleMenu('navProductos')">Productos <span class="caret"></span></button>
+        <div class="dropdown">
+          <a href="NodalDesk.html"><span class="item-name">NodalDesk</span><span class="item-desc">Mesa de ayuda y gestión de tickets</span></a>
+          <a href="NodalGuard.html"><span class="item-name">NodalGuard</span><span class="item-desc">Monitoreo y seguridad de endpoints</span></a>
+          <a href="NodalCloud.html"><span class="item-name">NodalCloud</span><span class="item-desc">Backup y almacenamiento gestionado</span></a>
+          <a href="NodalFlow.html"><span class="item-name">NodalFlow</span><span class="item-desc">Automatización de procesos internos</span></a>
+        </div>
+      </div>
+
+      <div class="navitem" id="navServicios">
+        <button onclick="toggleMenu('navServicios')">Servicios <span class="caret"></span></button>
+        <div class="dropdown">
+          <a href="SoporteGestionado.html"><span class="item-name">Soporte técnico gestionado</span><span class="item-desc">Atención remota y en sitio, 24/7</span></a>
+          <a href="Ciberseguridad.html"><span class="item-name">Ciberseguridad y auditoría</span><span class="item-desc">Pentesting, cumplimiento, respuesta a incidentes</span></a>
+          <a href="DesarrolloMedida.html"><span class="item-name">Desarrollo a medida</span><span class="item-desc">Software interno y aplicaciones web</span></a>
+          <a href="MigracionCloud.html"><span class="item-name">Migración a la nube</span><span class="item-desc">Consultoría e implementación en AWS y Azure</span></a>
+        </div>
+      </div>
+
+      <div class="navitem"><a href="#nosotros">Quiénes somos</a></div>
+      <div class="navitem"><a href="#contacto">Contacto</a></div>
+    </div>
+
+    <div class="navright">
+      <a class="btn-ghost" href="#contacto">Iniciar sesión</a>
+      <a class="btn-primary" href="pasareladepago.html">Contratar servicios</a>
+      <button class="hamburger" id="hamburger" aria-label="Abrir menú" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-navitem" id="mNavProductos">
+    <button onclick="toggleMobile('mNavProductos')">Productos <span class="caret"></span></button>
+    <div class="mobile-dropdown">
+      <a href="NodalDesk.html"><span class="item-name">NodalDesk</span><span class="item-desc">Mesa de ayuda y gestión de tickets</span></a>
+      <a href="NodalGuard.html"><span class="item-name">NodalGuard</span><span class="item-desc">Monitoreo y seguridad de endpoints</span></a>
+      <a href="NodalCloud.html"><span class="item-name">NodalCloud</span><span class="item-desc">Backup y almacenamiento gestionado</span></a>
+      <a href="NodalFlow.html"><span class="item-name">NodalFlow</span><span class="item-desc">Automatización de procesos internos</span></a>
+    </div>
+  </div>
+
+  <div class="mobile-navitem" id="mNavServicios">
+    <button onclick="toggleMobile('mNavServicios')">Servicios <span class="caret"></span></button>
+    <div class="mobile-dropdown">
+      <a href="SoporteGestionado.html"><span class="item-name">Soporte técnico gestionado</span><span class="item-desc">Atención remota y en sitio, 24/7</span></a>
+      <a href="Ciberseguridad.html"><span class="item-name">Ciberseguridad y auditoría</span><span class="item-desc">Pentesting, cumplimiento, respuesta a incidentes</span></a>
+      <a href="DesarrolloMedida.html"><span class="item-name">Desarrollo a medida</span><span class="item-desc">Software interno y aplicaciones web</span></a>
+      <a href="MigracionCloud.html"><span class="item-name">Migración a la nube</span><span class="item-desc">Consultoría e implementación en AWS y Azure</span></a>
+    </div>
+  </div>
+
+  <div class="mobile-navitem"><a href="#nosotros" onclick="closeMobileMenu()">Quiénes somos</a></div>
+  <div class="mobile-navitem"><a href="#contacto" onclick="closeMobileMenu()">Contacto</a></div>
+
+  <div class="mobile-cta">
+    <a class="btn-ghost" href="#contacto" onclick="closeMobileMenu()">Iniciar sesión</a>
+    <a class="btn-primary" href="pasareladepago.html" onclick="closeMobileMenu()">Contratar servicios</a>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow-plain">Soporte, seguridad e infraestructura para empresas</div>
+      <h1>El equipo de IT que tu empresa no tiene que contratar.</h1>
+      <p class="lede">Gestionamos el soporte técnico, la seguridad y los sistemas de más de 80 empresas en España, para que nadie ahí tenga que preocuparse por un servidor caído o un ordenador infectado.</p>
+      <div class="hero-ctas">
+        <a class="btn-primary" href="pasareladepago.html">Contratar servicios</a>
+        <a class="btn-ghost" href="#nosotros">Quiénes somos</a>
+      </div>
+    </div>
+
+    <div class="dash">
+      <div class="dash-top">
+        <span class="dash-title">Panel de monitoreo — cliente demo</span>
+        <span class="dash-status"><span class="dot-live"></span>en línea</span>
+      </div>
+      <div class="dash-body">
+        <div class="metric"><div class="m-label">Disponibilidad (30 días)</div><div class="m-val up">99.97%</div></div>
+        <div class="metric"><div class="m-label">Tickets abiertos</div><div class="m-val">3</div></div>
+        <div class="metric"><div class="m-label">Tiempo medio de respuesta</div><div class="m-val">11 min</div></div>
+        <div class="metric"><div class="m-label">Equipos protegidos</div><div class="m-val up">142</div></div>
+        <div class="dash-log">
+          <div><span>09:41</span> Copia de seguridad completada — servidor-02</div>
+          <div><span>09:12</span> Parche de seguridad aplicado a 38 equipos</div>
+          <div><span>08:55</span> Ticket #1042 resuelto — acceso VPN</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap strip">
+  <div class="strip-item"><div class="num">80+</div><div class="label">empresas gestionadas</div></div>
+  <div class="strip-item"><div class="num">11 min</div><div class="label">tiempo medio de primera respuesta</div></div>
+  <div class="strip-item"><div class="num">99.9%</div><div class="label">disponibilidad garantizada en contrato</div></div>
+  <div class="strip-item"><div class="num">24/7</div><div class="label">guardia de incidentes críticos</div></div>
+</div>
+
+<section class="section" id="nosotros">
+  <div class="wrap about-grid">
+    <div>
+      <h2 style="font-size:32px; margin-bottom:18px;">Quiénes somos</h2>
+      <p>Nodal nació en 2018 en Madrid, cuando tres ingenieros se cansaron de ver a pequeñas empresas depender de "el sobrino que entiende de ordenadores" para todo lo relacionado con sistemas.</p>
+      <p>Hoy somos un equipo de 34 personas repartidas entre soporte técnico, ciberseguridad y desarrollo, y gestionamos la infraestructura de empresas de entre 10 y 300 empleados que prefieren no tener un departamento de IT propio.</p>
+      <p>No vendemos horas sueltas: cada cliente tiene un ingeniero de cuenta asignado que conoce sus sistemas y responde cuando algo falla, no solo cuando toca renovar contrato.</p>
+    </div>
+    <div class="about-values">
+      <div class="value-card"><span class="v-num">01</span><h3>Un ingeniero, no un ticket</h3><p>Cada cuenta tiene una persona asignada que ya conoce tu infraestructura.</p></div>
+      <div class="value-card"><span class="v-num">02</span><h3>Sin letra pequeña</h3><p>Los SLA de respuesta y disponibilidad están en el contrato, no en una FAQ.</p></div>
+      <div class="value-card"><span class="v-num">03</span><h3>Prevención primero</h3><p>Monitoreamos antes de que falle, no reaccionamos después.</p></div>
+      <div class="value-card"><span class="v-num">04</span><h3>Español y en tu horario</h3><p>Soporte en español, en tu zona horaria, con escalado 24/7 para incidentes críticos.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="productos">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Productos</h2>
+      <p>Software propio que usamos con nuestros clientes gestionados, y que también vendemos como licencia independiente.</p>
+    </div>
+    <div class="cards4">
+      <a class="pcard" href="NodalDesk.html">
+        <span class="p-index">Producto 01</span>
+        <h3>NodalDesk</h3>
+        <p>Mesa de ayuda y gestión de tickets con SLA, base de conocimiento y app para el usuario final.</p>
+        <span class="p-link">Ver ficha →</span>
+      </a>
+      <a class="pcard" href="NodalGuard.html">
+        <span class="p-index">Producto 02</span>
+        <h3>NodalGuard</h3>
+        <p>Monitoreo de endpoints, antivirus gestionado y alertas de comportamiento anómalo en tiempo real.</p>
+        <span class="p-link">Ver ficha →</span>
+      </a>
+      <a class="pcard" href="NodalCloud.html">
+        <span class="p-index">Producto 03</span>
+        <h3>NodalCloud</h3>
+        <p>Backup automático y almacenamiento cifrado con recuperación ante desastres en minutos.</p>
+        <span class="p-link">Ver ficha →</span>
+      </a>
+      <a class="pcard" href="NodalFlow.html">
+        <span class="p-index">Producto 04</span>
+        <h3>NodalFlow</h3>
+        <p>Automatización de procesos internos: altas de empleados, aprobaciones y flujos entre sistemas.</p>
+        <span class="p-link">Ver ficha →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="servicios">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Servicios</h2>
+      <p>Trabajo directo de nuestro equipo, adaptado a la infraestructura y al tamaño de cada cliente.</p>
+    </div>
+    <div class="cards4">
+      <a class="pcard" href="SoporteGestionado.html">
+        <span class="p-index">Servicio 01</span>
+        <h3>Soporte técnico gestionado</h3>
+        <p>Atención remota y en sitio para toda la plantilla, con ingeniero de cuenta asignado.</p>
+        <span class="p-link">Ver detalle →</span>
+      </a>
+      <a class="pcard" href="Ciberseguridad.html">
+        <span class="p-index">Servicio 02</span>
+        <h3>Ciberseguridad y auditoría</h3>
+        <p>Pentesting, revisión de cumplimiento normativo y respuesta ante incidentes de seguridad.</p>
+        <span class="p-link">Ver detalle →</span>
+      </a>
+      <a class="pcard" href="DesarrolloMedida.html">
+        <span class="p-index">Servicio 03</span>
+        <h3>Desarrollo a medida</h3>
+        <p>Aplicaciones internas, integraciones y automatizaciones construidas para tu operación.</p>
+        <span class="p-link">Ver detalle →</span>
+      </a>
+      <a class="pcard" href="MigracionCloud.html">
+        <span class="p-index">Servicio 04</span>
+        <h3>Migración y consultoría cloud</h3>
+        <p>Paso de servidores propios a AWS o Azure, con plan de migración y coste estimado desde el día uno.</p>
+        <span class="p-link">Ver detalle →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="border-bottom:none;">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Lo que dicen nuestros clientes</h2>
+    </div>
+    <div class="quotes">
+      <div class="quote">
+        <p>Dejamos de tener sustos con las copias de seguridad desde que las gestiona Nodal. Antes nadie las revisaba hasta que hacían falta.</p>
+        <div class="who">Laura M. — directora de operaciones, retail</div>
+      </div>
+      <div class="quote">
+        <p>Tenemos 60 empleados y ni un solo técnico interno. El ingeniero asignado nos conoce mejor que un empleado nuestro.</p>
+        <div class="who">Carlos F. — CEO, despacho de arquitectura</div>
+      </div>
+      <div class="quote">
+        <p>La migración a la nube que llevábamos dos años posponiendo la hicieron en tres semanas, sin parar la operación un solo día.</p>
+        <div class="who">Sonia R. — gerente, distribuidora</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta" id="contacto">
+  <div class="wrap">
+    <div class="cta-box">
+      <h2>Habla con un ingeniero antes de firmar nada.</h2>
+      <div style="display:flex; gap:14px; flex-wrap:wrap;">
+        <a class="btn-primary" href="pasareladepago.html">Contratar servicios</a>
+        <a class="btn-ghost" style="border-color:rgba(242,241,236,0.3);" href="#">Hablar por WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="logo" style="margin-bottom:12px;">
+          <svg width="26" height="26" viewBox="0 0 30 30" fill="none">
+            <circle cx="7" cy="15" r="3.2" fill="#14181C"/>
+            <circle cx="23" cy="7" r="3.2" fill="#3454D1"/>
+            <circle cx="23" cy="23" r="3.2" fill="#3454D1"/>
+            <line x1="7" y1="15" x2="23" y2="7" stroke="#14181C" stroke-width="1.4"/>
+            <line x1="7" y1="15" x2="23" y2="23" stroke="#14181C" stroke-width="1.4"/>
+          </svg>
+          <span class="logo-word">nodal<span class="dot">.</span></span>
+        </div>
+        <p style="color:var(--ink-dim); font-size:14px; max-width:32ch;">Sistemas y soporte informático para empresas. Sitio de demostración con fines de prueba.</p>
+      </div>
+      <div>
+        <h4>Productos</h4>
+        <ul><li><a href="NodalDesk.html">NodalDesk</a></li><li><a href="NodalGuard.html">NodalGuard</a></li><li><a href="NodalCloud.html">NodalCloud</a></li><li><a href="NodalFlow.html">NodalFlow</a></li></ul>
+      </div>
+      <div>
+        <h4>Servicios</h4>
+        <ul><li><a href="SoporteGestionado.html">Soporte gestionado</a></li><li><a href="Ciberseguridad.html">Ciberseguridad</a></li><li><a href="DesarrolloMedida.html">Desarrollo a medida</a></li><li><a href="MigracionCloud.html">Migración cloud</a></li></ul>
+      </div>
+      <div>
+        <h4>Compañía</h4>
+        <ul><li><a href="#nosotros">Quiénes somos</a></li><li><a href="#">Empleo</a></li><li><a href="#contacto">Contacto</a></li></ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Nodal Sistemas — sitio de prueba</span>
+      <span>Madrid, España</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function toggleMenu(id){
+    const item = document.getElementById(id);
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.navitem.open').forEach(el => el.classList.remove('open'));
+    if(!wasOpen) item.classList.add('open');
+  }
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('.navitem')){
+      document.querySelectorAll('.navitem.open').forEach(el => el.classList.remove('open'));
+    }
+  });
+
+  // Menú móvil
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+
+  function closeMobileMenu(){
+    mobileMenu.classList.remove('open');
+    hamburger.classList.remove('open');
+    hamburger.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+
+  hamburger.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('open');
+    hamburger.classList.toggle('open', isOpen);
+    hamburger.setAttribute('aria-expanded', String(isOpen));
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  });
+
+  function toggleMobile(id){
+    const item = document.getElementById(id);
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.mobile-navitem.open').forEach(el => el.classList.remove('open'));
+    if(!wasOpen) item.classList.add('open');
+  }
+</script>
+
+</body>
+</html>
